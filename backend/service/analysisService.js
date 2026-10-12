@@ -1,32 +1,32 @@
 const mongoose = require("mongoose");
+const pdfParse = require("pdf-parse");
 
 const ResumeAnalysis = require("../models/analysisModel");
-const { jobSkillCatalog, normalizeSkill } = require("../utils");
-
-const fallbackResumeText =
-  "Experienced product-minded engineer with JavaScript, React, Node.js, SQL and REST APIs. Built frontend workflows, integrated APIs, and collaborated across design and engineering teams.";
-
-function scoreResume(resumeText, jobDescription) {
-  const safeResumeText = (resumeText || "").toLowerCase();
-  const safeJobDescription = (jobDescription || "").toLowerCase();
-
-  const presentSkills = jobSkillCatalog.filter((skill) => {
-    const normalizedSkill = normalizeSkill(skill);
-    return safeResumeText.includes(normalizedSkill) || safeJobDescription.includes(normalizedSkill);
-  });
-  const missingSkills = jobSkillCatalog.filter((skill) => !presentSkills.includes(skill));
-  const score = Math.min(98, Math.max(55, 68 + presentSkills.length * 4 - missingSkills.length * 3));
-
-  return {
-    score: Math.round(score),
-    summary: presentSkills.length >= 7 ? "Strong foundation." : "Promising fit.",
-    presentSkills,
-    missingSkills,
-  };
-}
+const { analyzeWithLabd } = require("./labdService");
 
 async function compareResume({ file, jobDescription, resumeText }) {
-  const result = scoreResume(resumeText || fallbackResumeText, jobDescription);
+  let extractedText;
+
+  if (file) {
+    try {
+      extractedText = (await pdfParse(file.buffer)).text.trim();
+    } catch (error) {
+      const parseError = new Error("The uploaded file could not be read as a PDF.");
+      parseError.statusCode = 422;
+      parseError.cause = error;
+      throw parseError;
+    }
+  } else {
+    extractedText = (resumeText || "").trim();
+  }
+
+  if (!extractedText) {
+    const error = new Error("The uploaded PDF does not contain readable text.");
+    error.statusCode = 422;
+    throw error;
+  }
+
+  const result = await analyzeWithLabd({ resumeText: extractedText, jobDescription });
   const payload = {
     ...result,
     fileName: file ? file.originalname : "resume.pdf",

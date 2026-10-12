@@ -8,6 +8,10 @@ async function compare(req, res, next) {
       return res.status(400).json({ message: "A job description is required." });
     }
 
+    if (!req.file) {
+      return res.status(400).json({ message: "A PDF resume is required." });
+    }
+
     const result = await compareResume({
       file: req.file,
       jobDescription,

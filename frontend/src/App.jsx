@@ -62,8 +62,8 @@ function App() {
   }
 
   async function handleAnalyze() {
-    if (!selectedFile && !jobDescription.trim()) {
-      setFileError("Upload a resume or write a job description to compare.");
+    if (!selectedFile || !jobDescription.trim()) {
+      setFileError("Upload a PDF and add a job description to compare.");
       return;
     }
 
@@ -78,12 +78,7 @@ function App() {
       }
 
       formData.append("jobDescription", jobDescription);
-      formData.append(
-        "resumeText",
-        "Experienced frontend engineer with JavaScript, React, Node.js, SQL, Git, REST APIs, and agile product delivery. Built customer-facing features, built dashboards, and collaborated closely with design and product teams.",
-      );
-
-      const response = await fetch("http://localhost:5050/api/compare", {
+      const response = await fetch("/api/compare", {
         method: "POST",
         body: formData,
       });
@@ -141,7 +136,7 @@ function App() {
             </p>
             <div className="hero-meta">
               <span>● Built for momentum</span>
-              <span>↗ Instant mock analysis</span>
+              <span>↗ Labd-powered analysis</span>
             </div>
           </div>
 
@@ -208,7 +203,7 @@ function App() {
             </button>
 
             <p className="privacy-note">
-              <span aria-hidden="true">✦</span> Your resume stays yours. This is a frontend mockup while the backend is under construction.
+              <span aria-hidden="true">✦</span> Your PDF is read on the server and never sent to the browser.
             </p>
           </div>
         </section>
@@ -301,7 +296,7 @@ function App() {
 
       <footer className="site-footer">
         <span>
-          0 to shipped <span className="muted">/ A mock resume parser</span>
+          0 to shipped <span className="muted">/ Resume intelligence</span>
         </span>
         <span>Made for people going from idea → impact</span>
       </footer>
