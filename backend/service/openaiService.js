@@ -1,13 +1,13 @@
-const LABD_URL = "https://agent.thedevlabs.io/v1/api/chat";
+const OPENAI_URL = "https://api.openai.com/v1/chat/completions";
 
-function createLabdError(status) {
+function createOpenAIError(status) {
   const messages = {
-    401: "The Labd API key is invalid or revoked.",
-    402: "The Labd allowance has been used up.",
-    403: "The Labd API is currently switched off.",
-    429: "Labd is rate-limiting requests. Please wait a moment and try again.",
+    401: "The OpenAI API key is invalid or revoked.",
+    402: "The OpenAI account requires billing or has insufficient credits.",
+    403: "The OpenAI API request was not permitted.",
+    429: "OpenAI is rate-limiting requests. Please wait a moment and try again.",
   };
-  const error = new Error(messages[status] || "Labd could not analyze the resume.");
+  const error = new Error(messages[status] || "OpenAI could not analyze the resume.");
   error.statusCode = status === 429 ? 429 : status >= 400 && status < 500 ? 502 : 502;
   return error;
 }
@@ -21,7 +21,7 @@ function parseJsonContent(content) {
   try {
     return JSON.parse(jsonContent);
   } catch {
-    throw new Error("Labd returned an invalid analysis format.");
+    throw new Error("OpenAI returned an invalid analysis format.");
   }
 }
 
@@ -31,7 +31,7 @@ function normalizeAnalysis(data) {
   const missingSkills = Array.isArray(data.missingSkills) ? data.missingSkills : null;
 
   if (!Number.isFinite(score) || score < 0 || score > 100 || !presentSkills || !missingSkills) {
-    throw new Error("Labd returned an incomplete analysis.");
+    throw new Error("OpenAI returned an incomplete analysis.");
   }
 
   return {
@@ -42,11 +42,11 @@ function normalizeAnalysis(data) {
   };
 }
 
-async function analyzeWithLabd({ resumeText, jobDescription }) {
-  const apiKey = process.env.LABD_API_KEY;
+async function analyzeWithOpenAI({ resumeText, jobDescription }) {
+  const apiKey = process.env.OPENAI_API_KEY;
 
   if (!apiKey) {
-    const error = new Error("LABD_API_KEY is not configured on the backend.");
+    const error = new Error("OPENAI_API_KEY is not configured on the backend.");
     error.statusCode = 503;
     throw error;
   }
@@ -64,27 +64,36 @@ async function analyzeWithLabd({ resumeText, jobDescription }) {
     jobDescription,
   ].join("\n");
 
-  const response = await fetch(LABD_URL, {
+  const response = await fetch(OPENAI_URL, {
     method: "POST",
     headers: {
-      Authorization: apiKey,
+      Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      messages: [{ role: "user", content: prompt }],
+      model: process.env.OPENAI_MODEL || "gpt-4o-mini",
+      messages: [
+        {
+          role: "system",
+          content: "You are a resume analysis assistant. Follow the requested JSON output format exactly.",
+        },
+        { role: "user", content: prompt },
+      ],
+      response_format: { type: "json_object" },
     }),
   });
 
   if (!response.ok) {
-    throw createLabdError(response.status);
+    throw createOpenAIError(response.status);
   }
 
   const payload = await response.json();
-  if (!payload.message || typeof payload.message.content !== "string") {
-    throw new Error("Labd returned no analysis content.");
+  const content = payload.choices?.[0]?.message?.content;
+  if (typeof content !== "string") {
+    throw new Error("OpenAI returned no analysis content.");
   }
 
-  return normalizeAnalysis(parseJsonContent(payload.message.content));
+  return normalizeAnalysis(parseJsonContent(content));
 }
 
-module.exports = { analyzeWithLabd };
+module.exports = { analyzeWithOpenAI };

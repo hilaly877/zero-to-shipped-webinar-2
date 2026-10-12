@@ -33,11 +33,14 @@ npm run build
 
 ## Backend environment
 
-Copy the example file and set both the MongoDB URI and your server-only Labd key:
+Copy the example file and set the MongoDB URI and your server-only OpenAI API key:
 
 ```bash
 cp backend/.env.example backend/.env
 ```
 
-`LABD_API_KEY` is read only by the Express backend. Do not put it in the
+`OPENAI_API_KEY` is read only by the Express backend. Do not put it in the
 frontend environment or expose it in browser code.
+
+The backend uses `gpt-4o-mini` by default. Set `OPENAI_MODEL` if you want to
+use another compatible OpenAI chat model.

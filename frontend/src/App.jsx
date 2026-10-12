@@ -136,7 +136,7 @@ function App() {
             </p>
             <div className="hero-meta">
               <span>● Built for momentum</span>
-              <span>↗ Labd-powered analysis</span>
+              <span>↗ AI-powered analysis</span>
             </div>
           </div>
 

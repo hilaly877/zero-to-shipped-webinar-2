@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const pdfParse = require("pdf-parse");
 
 const ResumeAnalysis = require("../models/analysisModel");
-const { analyzeWithLabd } = require("./labdService");
+const { analyzeWithOpenAI } = require("./openaiService");
 
 async function compareResume({ file, jobDescription, resumeText }) {
   let extractedText;
@@ -26,7 +26,7 @@ async function compareResume({ file, jobDescription, resumeText }) {
     throw error;
   }
 
-  const result = await analyzeWithLabd({ resumeText: extractedText, jobDescription });
+  const result = await analyzeWithOpenAI({ resumeText: extractedText, jobDescription });
   const payload = {
     ...result,
     fileName: file ? file.originalname : "resume.pdf",
