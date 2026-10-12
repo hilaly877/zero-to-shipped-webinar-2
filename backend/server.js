@@ -1,12 +1,13 @@
 const cors = require("cors");
 const dotenv = require("dotenv");
 const express = require("express");
+const path = require("path");
 
 const connectDatabase = require("./config/database");
 const { errorHandler, notFound } = require("./middleware/errorMiddleware");
 const analysisRoutes = require("./routes/analysisRoutes");
 
-dotenv.config();
+dotenv.config({ path: path.join(__dirname, ".env") });
 
 const app = express();
 const PORT = process.env.PORT || 5050;
