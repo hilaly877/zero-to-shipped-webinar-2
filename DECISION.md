@@ -1,1 +1,3 @@
 I want to build an HTML, CSS, JS landing page for my resume parser, where I should be able to upload an pdf and get the score out of it. Here I just want to see the score, what skills are present, and what skills are missing. and i'm gonna call this as 0 to shipped resume parser. this is gonna be a mock design, so just build html css is fine, no back-end server is needed
+
+i want to convert this entire project into a react project
