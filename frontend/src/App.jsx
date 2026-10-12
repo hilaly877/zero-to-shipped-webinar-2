@@ -102,13 +102,7 @@ function App() {
         fileName: selectedFile ? selectedFile.name.toUpperCase() : "UPLOADED_RESUME.PDF",
       });
     } catch (error) {
-      setResults({
-        score: 82,
-        summary: "Solid foundation.",
-        presentSkills: defaultSkills.presentSkills,
-        missingSkills: defaultSkills.missingSkills,
-        fileName: selectedFile ? selectedFile.name.toUpperCase() : "SAMPLE_RESUME.PDF",
-      });
+      setFileError(error instanceof Error ? error.message : "Unable to analyze the resume right now.");
     } finally {
       setIsAnalyzing(false);
     }
