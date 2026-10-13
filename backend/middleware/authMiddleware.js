@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/userModel");
-const { isDatabaseConnected } = require("../config/database");
+const { connectDatabase } = require("../config/database");
 
 function getJwtSecret() {
   if (!process.env.JWT_SECRET) {
@@ -14,7 +14,7 @@ function getJwtSecret() {
 
 async function requireAuth(req, res, next) {
   try {
-    if (!isDatabaseConnected()) {
+    if (!(await connectDatabase())) {
       return res.status(503).json({
         message: "The database is unavailable. Check the MongoDB connection and try again.",
       });

@@ -42,5 +42,12 @@ cp backend/.env.example backend/.env
 `OPENAI_API_KEY` is read only by the Express backend. Do not put it in the
 frontend environment or expose it in browser code.
 
+For a Vercel deployment, add `MONGODB_URI`, `JWT_SECRET`, and
+`OPENAI_API_KEY` in the Vercel project's Environment Variables for the
+**Backend** service (at least for the Production environment), then redeploy.
+The MongoDB deployment must also allow connections from Vercel, for example
+by configuring its network access rules appropriately. The backend connects
+when the first serverless request arrives, so no local `.env` file is deployed.
+
 The backend uses `gpt-4o-mini` by default. Set `OPENAI_MODEL` if you want to
 use another compatible OpenAI chat model.

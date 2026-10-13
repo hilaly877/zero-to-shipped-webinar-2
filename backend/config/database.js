@@ -6,8 +6,12 @@ function isDatabaseConnected() {
   return mongoose.connection.readyState === 1;
 }
 
-function requireDatabase(req, res, next) {
-  if (!isDatabaseConnected()) {
+let connectionPromise;
+
+async function requireDatabase(req, res, next) {
+  const connected = await connectDatabase();
+
+  if (!connected) {
     return res.status(503).json({
       message: "The database is unavailable. Check the MongoDB connection and try again.",
     });
@@ -17,19 +21,44 @@ function requireDatabase(req, res, next) {
 }
 
 async function connectDatabase() {
-  const mongoUri = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/zero-to-shipped";
+  if (isDatabaseConnected()) {
+    return true;
+  }
 
-  try {
-    await mongoose.connect(mongoUri, {
+  if (connectionPromise) {
+    return connectionPromise;
+  }
+
+  const mongoUri =
+    process.env.MONGODB_URI ||
+    (process.env.NODE_ENV === "production"
+      ? undefined
+      : "mongodb://127.0.0.1:27017/zero-to-shipped");
+  if (!mongoUri) {
+    console.warn("MongoDB connection failed because MONGODB_URI is not configured.");
+    return false;
+  }
+
+  connectionPromise = mongoose
+    .connect(mongoUri, {
       serverSelectionTimeoutMS: 10000,
       connectTimeoutMS: 10000,
       socketTimeoutMS: 30000,
+    })
+    .then(() => {
+      console.log("MongoDB connected successfully.");
+      return true;
+    })
+    .catch((error) => {
+      console.warn("MongoDB connection failed. Requests will return 503.");
+      console.warn(error.message);
+      return false;
+    })
+    .finally(() => {
+      connectionPromise = undefined;
     });
-    console.log("MongoDB connected successfully.");
-  } catch (error) {
-    console.warn("MongoDB connection failed. Auth and analysis requests will return 503.");
-    console.warn(error.message);
-  }
+
+  return connectionPromise;
 }
 
 module.exports = { connectDatabase, isDatabaseConnected, requireDatabase };
