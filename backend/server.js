@@ -1,11 +1,13 @@
 const cors = require("cors");
 const dotenv = require("dotenv");
 const express = require("express");
+const cookieParser = require("cookie-parser");
 const path = require("path");
 
 const connectDatabase = require("./config/database");
 const { errorHandler, notFound } = require("./middleware/errorMiddleware");
 const analysisRoutes = require("./routes/analysisRoutes");
+const authRoutes = require("./routes/authRoutes");
 
 dotenv.config({ path: path.join(__dirname, ".env") });
 
@@ -19,6 +21,7 @@ app.use(
   }),
 );
 app.use(express.json({ limit: "5mb" }));
+app.use(cookieParser());
 
 app.get("/api/health", (req, res) => {
   res.json({
@@ -29,6 +32,7 @@ app.get("/api/health", (req, res) => {
 });
 
 app.use("/api", analysisRoutes);
+app.use("/api/auth", authRoutes);
 app.use(notFound);
 app.use(errorHandler);
 

@@ -16,6 +16,7 @@ async function compare(req, res, next) {
       file: req.file,
       jobDescription,
       resumeText: req.body.resumeText,
+      userId: req.user._id,
     });
 
     res.json(result);

@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const defaultSkills = {
   presentSkills: ["JavaScript", "React", "Node.js", "SQL", "Git", "REST APIs", "Agile", "Figma"],
@@ -24,6 +24,103 @@ function SkillChip({ children, missing = false }) {
   );
 }
 
+function AuthScreen({ onAuthenticated }) {
+  const [mode, setMode] = useState("login");
+  const [form, setForm] = useState({ name: "", email: "", password: "" });
+  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  function updateField(event) {
+    setForm((current) => ({ ...current, [event.target.name]: event.target.value }));
+  }
+
+  async function handleSubmit(event) {
+    event.preventDefault();
+    setError("");
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch(`/api/auth/${mode}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(form),
+      });
+      const payload = await response.json();
+
+      if (!response.ok) {
+        throw new Error(payload.message || "Unable to sign in.");
+      }
+
+      onAuthenticated(payload.user);
+    } catch (submitError) {
+      setError(submitError instanceof Error ? submitError.message : "Unable to sign in.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  return (
+    <main className="auth-page">
+      <section className="auth-card" aria-labelledby="auth-title">
+        <div className="auth-intro">
+          <p className="eyebrow">YOUR WORKSPACE / 00</p>
+          <h1 id="auth-title">
+            Make your next move <em>count.</em>
+          </h1>
+          <p>Sign in to save your resume readouts and keep your job search moving forward.</p>
+        </div>
+
+        <div className="auth-panel">
+          <div className="auth-tabs" role="tablist" aria-label="Account access">
+            <button
+              className={mode === "login" ? "active" : ""}
+              type="button"
+              role="tab"
+              aria-selected={mode === "login"}
+              onClick={() => { setMode("login"); setError(""); }}
+            >
+              Log in
+            </button>
+            <button
+              className={mode === "register" ? "active" : ""}
+              type="button"
+              role="tab"
+              aria-selected={mode === "register"}
+              onClick={() => { setMode("register"); setError(""); }}
+            >
+              Create account
+            </button>
+          </div>
+
+          <form className="auth-form" onSubmit={handleSubmit}>
+            {mode === "register" && (
+              <label>
+                <span>Your name</span>
+                <input name="name" value={form.name} onChange={updateField} autoComplete="name" required />
+              </label>
+            )}
+            <label>
+              <span>Email address</span>
+              <input name="email" type="email" value={form.email} onChange={updateField} autoComplete="email" required />
+            </label>
+            <label>
+              <span>Password</span>
+              <input name="password" type="password" value={form.password} onChange={updateField} autoComplete={mode === "login" ? "current-password" : "new-password"} minLength={8} required />
+            </label>
+            {error && <p className="auth-error" role="alert">{error}</p>}
+            <button className="auth-submit" type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "Connecting..." : mode === "login" ? "Log in to your workspace" : "Create your workspace"}
+              <span aria-hidden="true">↗</span>
+            </button>
+          </form>
+          <p className="auth-note">Your account keeps your analysis history private.</p>
+        </div>
+      </section>
+    </main>
+  );
+}
+
 function App() {
   const fileInputRef = useRef(null);
   const [selectedFile, setSelectedFile] = useState(null);
@@ -41,6 +138,40 @@ function App() {
     fileName: "SAMPLE_RESUME.PDF",
   });
   const [showTip, setShowTip] = useState(true);
+  const [user, setUser] = useState(null);
+  const [isCheckingSession, setIsCheckingSession] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/auth/me", { credentials: "include" })
+      .then((response) => response.ok ? response.json() : null)
+      .then((payload) => setUser(payload?.user || null))
+      .catch(() => setUser(null))
+      .finally(() => setIsCheckingSession(false));
+  }, []);
+
+  async function handleLogout() {
+    await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+    setUser(null);
+  }
+
+  if (isCheckingSession) {
+    return <div className="auth-loading">Opening your workspace...</div>;
+  }
+
+  if (!user) {
+    return (
+      <>
+        <header className="site-header">
+          <a className="brand" href="#" aria-label="0 to shipped home">
+            <span className="brand-mark" aria-hidden="true">0→</span>
+            <span>to shipped</span>
+          </a>
+          <div className="header-note"><span className="status-dot" /> Private resume intelligence</div>
+        </header>
+        <AuthScreen onAuthenticated={setUser} />
+      </>
+    );
+  }
 
   function handleFile(file) {
     if (!file) return;
@@ -80,6 +211,7 @@ function App() {
       formData.append("jobDescription", jobDescription);
       const response = await fetch("/api/compare", {
         method: "POST",
+        credentials: "include",
         body: formData,
       });
 
@@ -118,8 +250,9 @@ function App() {
           <span className="brand-mark" aria-hidden="true">0→</span>
           <span>to shipped</span>
         </a>
-        <div className="header-note">
-          <span className="status-dot" /> Resume intelligence, simplified
+        <div className="header-actions">
+          <div className="header-note"><span className="status-dot" /> {user.name}</div>
+          <button className="logout-button" type="button" onClick={handleLogout}>Log out</button>
         </div>
       </header>
 

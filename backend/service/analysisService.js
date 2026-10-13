@@ -4,7 +4,7 @@ const pdfParse = require("pdf-parse");
 const ResumeAnalysis = require("../models/analysisModel");
 const { analyzeWithOpenAI } = require("./openaiService");
 
-async function compareResume({ file, jobDescription, resumeText }) {
+async function compareResume({ file, jobDescription, resumeText, userId }) {
   let extractedText;
 
   if (file) {
@@ -34,6 +34,7 @@ async function compareResume({ file, jobDescription, resumeText }) {
 
   if (mongoose.connection.readyState === 1) {
     await ResumeAnalysis.create({
+      userId,
       resumeFileName: payload.fileName,
       jobDescription,
       score: payload.score,
