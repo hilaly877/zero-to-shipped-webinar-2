@@ -4,7 +4,7 @@ const express = require("express");
 const cookieParser = require("cookie-parser");
 const path = require("path");
 
-const connectDatabase = require("./config/database");
+const { connectDatabase, isDatabaseConnected } = require("./config/database");
 const { errorHandler, notFound } = require("./middleware/errorMiddleware");
 const analysisRoutes = require("./routes/analysisRoutes");
 const authRoutes = require("./routes/authRoutes");
@@ -27,7 +27,7 @@ app.get("/api/health", (req, res) => {
   res.json({
     status: "ok",
     message: "Resume parser backend is running.",
-    mongodbConnected: Boolean(require("mongoose").connection.readyState === 1),
+    mongodbConnected: isDatabaseConnected(),
   });
 });
 

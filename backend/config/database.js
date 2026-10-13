@@ -1,5 +1,21 @@
 const mongoose = require("mongoose");
 
+mongoose.set("bufferCommands", false);
+
+function isDatabaseConnected() {
+  return mongoose.connection.readyState === 1;
+}
+
+function requireDatabase(req, res, next) {
+  if (!isDatabaseConnected()) {
+    return res.status(503).json({
+      message: "The database is unavailable. Check the MongoDB connection and try again.",
+    });
+  }
+
+  next();
+}
+
 async function connectDatabase() {
   const mongoUri = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/zero-to-shipped";
 
@@ -14,4 +30,4 @@ async function connectDatabase() {
   }
 }
 
-module.exports = connectDatabase;
+module.exports = { connectDatabase, isDatabaseConnected, requireDatabase };
