@@ -24,6 +24,48 @@ function SkillChip({ children, missing = false }) {
   );
 }
 
+function getScoreComparison(score) {
+  const difference = score - 70;
+
+  if (difference > 0) {
+    return `▲ ${difference} pts above the average resume`;
+  }
+
+  if (difference < 0) {
+    return `▼ ${Math.abs(difference)} pts below the average resume`;
+  }
+
+  return "At the average resume score";
+}
+
+function getToolkitLabel(skills) {
+  const normalizedSkills = skills.map((skill) => skill.toLowerCase());
+  const hasProductSkills = normalizedSkills.some((skill) =>
+    ["product", "figma", "design", "agile", "scrum", "ux", "user research"].some((keyword) =>
+      skill.includes(keyword),
+    ),
+  );
+  const hasEngineeringSkills = normalizedSkills.some((skill) =>
+    ["javascript", "typescript", "react", "node", "python", "java", "sql", "api", "testing", "ci/cd", "git"].some(
+      (keyword) => skill.includes(keyword),
+    ),
+  );
+
+  if (hasProductSkills && hasEngineeringSkills) {
+    return "a product-minded engineer";
+  }
+
+  if (hasProductSkills) {
+    return "product-minded";
+  }
+
+  if (hasEngineeringSkills) {
+    return "technically focused";
+  }
+
+  return "distinctive";
+}
+
 function AuthScreen({ onAuthenticated }) {
   const [mode, setMode] = useState("login");
   const [form, setForm] = useState({ name: "", email: "", password: "" });
@@ -244,6 +286,7 @@ function App() {
       : "Analyze my resume";
   const score = Math.min(100, Math.max(0, Number(results.score) || 0));
   const ringCircumference = 2 * Math.PI * 51;
+  const toolkitLabel = getToolkitLabel(results.presentSkills);
 
   return (
     <>
@@ -389,7 +432,7 @@ function App() {
                 </div>
               </div>
               <div className="score-footer">
-                <span>▲ 12 pts</span> above the average resume
+                {getScoreComparison(score)}
               </div>
             </article>
 
@@ -403,7 +446,7 @@ function App() {
                 ))}
               </div>
               <p className="card-footnote">
-                Your toolkit reads as <strong>product-minded</strong>.
+                Your toolkit reads as <strong>{toolkitLabel}</strong>.
               </p>
             </article>
 
