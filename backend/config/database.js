@@ -21,11 +21,13 @@ async function connectDatabase() {
 
   try {
     await mongoose.connect(mongoUri, {
-      serverSelectionTimeoutMS: 3000,
+      serverSelectionTimeoutMS: 10000,
+      connectTimeoutMS: 10000,
+      socketTimeoutMS: 30000,
     });
     console.log("MongoDB connected successfully.");
   } catch (error) {
-    console.warn("MongoDB connection failed. Continuing without a database connection.");
+    console.warn("MongoDB connection failed. Auth and analysis requests will return 503.");
     console.warn(error.message);
   }
 }
