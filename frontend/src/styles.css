@@ -525,8 +525,8 @@ main {
 
 .results-grid {
   display: grid;
-  grid-template-columns: 1.1fr 1fr 1fr;
-  gap: 20px;
+  grid-template-columns: 1fr;
+  gap: 18px;
   align-items: stretch;
 }
 
@@ -597,8 +597,10 @@ main {
 .score-number {
   position: absolute;
   inset: 0;
-  display: grid;
-  place-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   text-align: center;
 }
 
@@ -610,7 +612,7 @@ main {
 
 .score-number span {
   display: block;
-  margin-top: 4px;
+  margin-top: 2px;
   color: var(--muted);
   font-size: 0.82rem;
 }
@@ -768,11 +770,7 @@ main {
   }
 
   .results-grid {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  }
-
-  .score-card {
-    grid-column: 1 / -1;
+    grid-template-columns: 1fr;
   }
 
   .section-heading,
@@ -828,10 +826,6 @@ main {
 
   .results-grid {
     grid-template-columns: 1fr;
-  }
-
-  .score-card {
-    grid-column: auto;
   }
 
   .score-card,

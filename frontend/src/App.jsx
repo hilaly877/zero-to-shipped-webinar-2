@@ -242,6 +242,8 @@ function App() {
     : selectedFile
       ? "Analyze again"
       : "Analyze my resume";
+  const score = Math.min(100, Math.max(0, Number(results.score) || 0));
+  const ringCircumference = 2 * Math.PI * 51;
 
   return (
     <>
@@ -363,10 +365,19 @@ function App() {
                 <div className="score-ring">
                   <svg viewBox="0 0 120 120" aria-hidden="true">
                     <circle className="ring-track" cx="60" cy="60" r="51" />
-                    <circle className="ring-value" cx="60" cy="60" r="51" />
+                    <circle
+                      className="ring-value"
+                      cx="60"
+                      cy="60"
+                      r="51"
+                      style={{
+                        strokeDasharray: ringCircumference,
+                        strokeDashoffset: ringCircumference * (1 - score / 100),
+                      }}
+                    />
                   </svg>
                   <div className="score-number">
-                    <strong>{results.score}</strong>
+                    <strong>{score}</strong>
                     <span>/ 100</span>
                   </div>
                 </div>
